@@ -58,6 +58,11 @@
   box-sizing: border-box;
 }
 
+/* Keep the native hidden attribute authoritative over component display rules. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
