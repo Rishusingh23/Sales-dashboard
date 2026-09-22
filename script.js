@@ -9,6 +9,7 @@
    currentSort: which column and direction the table is sorted by
    These are the only two "sources of truth" the whole app reads from. */
 let salesData = [];
+let dataLoaded = false;
 let currentSort = { column: null, direction: "asc" };
 
 /* Chart.js instances are stored so we can update them instead of
@@ -67,39 +68,46 @@ function statusBadgeClass(status) {
 
 async function loadSalesData() {
   // Reset to the loading state every time we (re)try
+  dataLoaded = false;
   loadingState.hidden = false;
   errorState.hidden = true;
   dashboardContent.hidden = true;
+  emptyState.hidden = true;
 
+  let data;
   try {
-    const response = await fetch("sales.json");
+    const response = await fetch("./sales.json");
 
     if (!response.ok) {
       throw new Error("Network response was not OK");
     }
 
-    const data = await response.json();
+    data = await response.json();
 
     if (!Array.isArray(data) || data.length === 0) {
       throw new Error("Sales data is empty or invalid");
     }
-
-    salesData = data;
-
-    // Success: show the dashboard and build everything from the data
-    loadingState.hidden = true;
-    dashboardContent.hidden = false;
-
-    renderKPIs(salesData);
-    renderMonthlyChart(salesData);
-    renderCategoryChart(salesData);
-    applyFiltersAndRender();
   } catch (error) {
     // Failure: show a friendly error message, never a blank page
     console.error("Failed to load sales.json:", error);
     loadingState.hidden = true;
     errorState.hidden = false;
+    return;
   }
+
+  // Mark the data as loaded only after fetch and JSON parsing succeed.
+  salesData = data;
+  dataLoaded = true;
+
+  // Render first; expose the dashboard only after all content is ready.
+  renderKPIs(salesData);
+  renderMonthlyChart(salesData);
+  renderCategoryChart(salesData);
+  applyFiltersAndRender();
+
+  loadingState.hidden = true;
+  errorState.hidden = true;
+  dashboardContent.hidden = false;
 }
 
 /* ---------- 5. KPI CALCULATIONS ----------
@@ -290,10 +298,10 @@ function getFilteredAndSortedData() {
 function renderTable(rows) {
   resultsCount.textContent = `${rows.length} record${rows.length === 1 ? "" : "s"}`;
 
-  if (rows.length === 0) {
+  if (!dataLoaded || rows.length === 0) {
     tableBody.innerHTML = "";
     salesTable.hidden = true;
-    emptyState.hidden = false;
+    emptyState.hidden = !dataLoaded;
     return;
   }
 
