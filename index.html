@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Dashboard</title>
+  <meta name="description" content="A dashboard for tracking and analysing sales performance." />
+
+  <!-- Google Fonts: Sora for headings, Inter for body/data -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js (loaded once, used for both charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Skip link for keyboard users -->
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <div class="app">
+
+    <!-- ============ SIDEBAR NAVIGATION ============ -->
+    <header class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 15l4-5 3 3 5-7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">SalesBoard</span>
+      </div>
+
+      <nav aria-label="Primary navigation">
+        <ul class="nav-list">
+          <li>
+            <a href="#main-content" class="nav-link is-active" aria-current="page" aria-label="Dashboard">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#sales-section" class="nav-link" aria-label="Sales">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+              <span>Sales</span>
+            </a>
+          </li>
+          <li>
+            <a href="#products-section" class="nav-link" aria-label="Products">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+              <span>Products</span>
+            </a>
+          </li>
+          <li>
+            <a href="#reports-section" class="nav-link" aria-label="Reports">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M7 19v-6"/><path d="M12 19V9"/><path d="M17 19V5"/></svg>
+              <span>Reports</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="sidebar-note">Single-page navigation for dashboard sections.</p>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ============ TOP BAR ============ -->
+      <div class="topbar">
+        <div class="topbar-heading">
+          <h1>Sales Dashboard</h1>
+          <p class="subtitle">Track and analyze your sales performance</p>
+        </div>
+      </div>
+
+      <!-- ============ MAIN CONTENT ============ -->
+      <main id="main-content">
+
+        <!-- Loading state -->
+        <div id="loading-state" class="state-banner" role="status" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <p>Loading sales data&hellip;</p>
+        </div>
+
+        <!-- Error state -->
+        <div id="error-state" class="state-banner state-banner--error" role="alert" hidden>
+          <p>Unable to load sales data. Please try again.</p>
+          <button type="button" id="retry-btn" class="btn btn-primary">Retry</button>
+        </div>
+
+        <!-- Dashboard content: hidden until data loads successfully -->
+        <div id="dashboard-content" hidden>
+
+          <!-- ===== KPI CARDS ===== -->
+          <section id="products-section" aria-labelledby="kpi-heading" class="kpi-section">
+            <h2 id="kpi-heading" class="visually-hidden">Key performance indicators</h2>
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--sales" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <p class="kpi-label">Total Sales</p>
+                <p class="kpi-value" id="kpi-total-sales">&#8377;0</p>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--orders" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+                </div>
+                <p class="kpi-label">Total Orders</p>
+                <p class="kpi-value" id="kpi-total-orders">0</p>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--avg" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h12"/></svg>
+                </div>
+                <p class="kpi-label">Average Order Value</p>
+                <p class="kpi-value" id="kpi-avg-order">&#8377;0</p>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--products" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
+                </div>
+                <p class="kpi-label">Total Products</p>
+                <p class="kpi-value" id="kpi-total-products">0</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== CHARTS ===== -->
+          <section id="reports-section" aria-labelledby="charts-heading" class="charts-section">
+            <h2 id="charts-heading" class="visually-hidden">Sales charts</h2>
+            <div class="charts-grid">
+              <div class="chart-card">
+                <h3>Monthly Sales Performance</h3>
+                <div class="chart-canvas-wrap">
+                  <canvas id="monthly-chart" role="img" aria-label="Bar chart of monthly sales from January to June"></canvas>
+                </div>
+              </div>
+              <div class="chart-card">
+                <h3>Sales by Category</h3>
+                <div class="chart-canvas-wrap chart-canvas-wrap--doughnut">
+                  <canvas id="category-chart" role="img" aria-label="Doughnut chart of sales distribution by category"></canvas>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== FILTER BAR ===== -->
+          <section aria-labelledby="filters-heading" class="filter-bar">
+            <h2 id="filters-heading" class="visually-hidden">Search and filter sales records</h2>
+
+            <div class="filter-field filter-field--search">
+              <label for="search-input">Search</label>
+              <svg class="filter-field-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input
+                type="search"
+                id="search-input"
+                placeholder="Search products..."
+                aria-label="Search sales records by product, customer, or category"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="filter-field">
+              <label for="category-filter">Category</label>
+              <select id="category-filter" aria-label="Filter by category">
+                <option value="all">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Home & Kitchen">Home &amp; Kitchen</option>
+                <option value="Sports">Sports</option>
+                <option value="Beauty">Beauty</option>
+              </select>
+            </div>
+
+            <div class="filter-field">
+              <label for="status-filter">Status</label>
+              <select id="status-filter" aria-label="Filter by order status">
+                <option value="all">All Status</option>
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <button type="button" id="clear-filters-btn" class="btn btn-ghost">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              Clear Filters
+            </button>
+          </section>
+
+          <!-- ===== DATA TABLE ===== -->
+          <section id="sales-section" aria-labelledby="table-heading" class="table-section">
+            <div class="table-section-header">
+              <h2 id="table-heading">Recent Sales</h2>
+              <p class="results-count" id="results-count" aria-live="polite"></p>
+            </div>
+
+            <div class="table-scroll">
+              <table id="sales-table">
+                <caption class="visually-hidden">Sales records. Click a column header to sort.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" data-sort="id"><button type="button" class="sort-btn">ID<span class="sort-indicator" aria-hidden="true"></span></button></th>
+                    <th scope="col" data-sort="date"><button type="button" class="sort-btn">Date<span class="sort-indicator" aria-hidden="true"></span></button></th>
+                    <th scope="col" data-sort="product"><button type="button" class="sort-btn">Product<span class="sort-indicator" aria-hidden="true"></span></button></th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Customer</th>
+                    <th scope="col" data-sort="quantity"><button type="button" class="sort-btn">Quantity<span class="sort-indicator" aria-hidden="true"></span></button></th>
+                    <th scope="col">Price</th>
+                    <th scope="col" data-sort="total"><button type="button" class="sort-btn">Total<span class="sort-indicator" aria-hidden="true"></span></button></th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="sales-table-body">
+                  <!-- Rows are generated dynamically by script.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty state, shown when no rows match the current filters -->
+            <p id="empty-state" class="state-banner" hidden>No sales records found.</p>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
