@@ -40,6 +40,7 @@ const resultsCount = document.getElementById("results-count");
 const emptyState = document.getElementById("empty-state");
 const salesTable = document.getElementById("sales-table");
 const navLinks = document.querySelectorAll(".nav-link");
+const dataUrl = new URL("sales.json", document.baseURI).href;
 
 /* ---------- 3. HELPERS ---------- */
 
@@ -76,20 +77,38 @@ async function loadSalesData() {
 
   let data;
   try {
-    const response = await fetch("./sales.json");
+    console.info("Sales data load started", {
+      pageUrl: window.location.href,
+      baseURI: document.baseURI,
+      dataUrl,
+    });
+
+    const response = await fetch(dataUrl, { cache: "no-store" });
+
+    console.info("Sales data response", {
+      status: response.status,
+      url: response.url,
+      ok: response.ok,
+    });
 
     if (!response.ok) {
       throw new Error("Network response was not OK");
     }
 
     data = await response.json();
+    console.info("Sales data parsed", { recordCount: Array.isArray(data) ? data.length : 0 });
 
     if (!Array.isArray(data) || data.length === 0) {
       throw new Error("Sales data is empty or invalid");
     }
   } catch (error) {
     // Failure: show a friendly error message, never a blank page
-    console.error("Failed to load sales.json:", error);
+    console.error("Failed to load sales data", {
+      pageUrl: window.location.href,
+      baseURI: document.baseURI,
+      dataUrl,
+      message: error instanceof Error ? error.message : String(error),
+    });
     loadingState.hidden = true;
     errorState.hidden = false;
     return;
