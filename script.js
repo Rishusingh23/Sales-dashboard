@@ -118,15 +118,26 @@ async function loadSalesData() {
   salesData = data;
   dataLoaded = true;
 
-  // Render first; expose the dashboard only after all content is ready.
-  renderKPIs(salesData);
-  renderMonthlyChart(salesData);
-  renderCategoryChart(salesData);
-  applyFiltersAndRender();
-
+  // Commit the successful data state before any UI rendering can fail.
   loadingState.hidden = true;
   errorState.hidden = true;
   dashboardContent.hidden = false;
+
+  console.info("Sales data loaded successfully", { recordCount: salesData.length });
+
+  try {
+    console.info("Dashboard rendering started");
+    renderKPIs(salesData);
+    renderMonthlyChart(salesData);
+    renderCategoryChart(salesData);
+    applyFiltersAndRender();
+    console.info("Dashboard rendering completed");
+  } catch (error) {
+    console.error("Dashboard rendering failed after sales data loaded", {
+      message: error instanceof Error ? error.message : String(error),
+      recordCount: salesData.length,
+    });
+  }
 }
 
 /* ---------- 5. KPI CALCULATIONS ----------
